@@ -1,0 +1,6 @@
+.imageBG{
+    background-image: url('../../pictures/steakfish.jpg');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
