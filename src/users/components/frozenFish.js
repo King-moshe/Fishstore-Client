@@ -5,18 +5,19 @@ import { toast } from "react-toastify";
 import { useStateContext } from "../../context";
 import EastIcon from '@mui/icons-material/East';
 
-
 export default function FrozenFish() {
-  const [counts, setCounts] = useState([]); // Use an array to store counts for each product
+  const [counts, setCounts] = useState([]);
   const [data, setData] = useState([]);
   const { setCountCart } = useStateContext();
   const location = useLocation();
   const nav = useNavigate();
   const category = location.state;
+  const [searchText, setSearchText] = useState("");
+  const [sortOrder, setSortOrder] = useState("asc");
 
   useEffect(() => {
     if (!category) {
-      nav("/categories"); // Redirect if category is missing
+      nav("/categories");
       return;
     }
     doApi();
@@ -31,7 +32,6 @@ export default function FrozenFish() {
         (item) => item.cat_url === category.cat_url
       );
       setData(filteredData);
-      // Initialize counts array with default values
       setCounts(new Array(filteredData.length).fill(1));
     } catch (error) {
       console.log(error);
@@ -44,13 +44,12 @@ export default function FrozenFish() {
       id: product._id,
       name: product.name,
       price: product.price,
-      quantity: counts[index], // Use the count for the specific product
+      quantity: counts[index],
     };
     cart.push(productToAdd);
     localStorage.setItem("cart", JSON.stringify(cart));
     toast.info("המוצר התווסף לסל הקניות!");
 
-    // Reset the count to 1 after adding the product
     const newCounts = [...counts];
     newCounts[index] = 1;
     setCounts(newCounts);
@@ -71,79 +70,98 @@ export default function FrozenFish() {
     }
   }
 
+  const filteredAndSortedData = data
+    .filter((item) =>
+      item.name.toLowerCase().includes(searchText.toLowerCase())
+    )
+    .sort((a, b) =>
+      sortOrder === "asc" ? a.price - b.price : b.price - a.price
+    );
+
   if (!category) {
-    return null; // Prevent rendering if no category is passed
+    return null;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-t from-gray-700 via-gray-900 to-gray-700 ">
-      <div className="flex p-4 text-white">
-        <div className="w-1/5 text-center">
-          <Link to="/categories" className="rounded-lg">
+    <div className="min-h-screen bg-gradient-to-t from-gray-700 via-gray-900 to-gray-700">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col space-y-4 md:flex-row md:justify-between md:items-center mb-8">
+          <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 md:items-center">
+            <input
+              type="search"
+              className="p-2 border border-gray-400 rounded-lg w-full md:w-auto md:ml-2"
+              placeholder="חיפוש ..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+            />
+            <select
+              className="p-2 border border-gray-400 rounded-lg w-full md:w-auto"
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+            >
+              <option value="asc">מחיר: מהנמוך לגבוה</option>
+              <option value="desc">מחיר: מהגבוה לנמוך</option>
+            </select>
+          </div>
+          <Link to="/categories" className="text-white text-xl">
             <EastIcon />
           </Link>
         </div>
-        <div className="w-3/5 text-center">
-          <h1 className="text-3xl">{category.name}</h1>
-        </div>
-        <div className="w-1/5 text-center">
-          {/* Empty div to maintain the layout */}
-        </div>
-      </div>
-      <article className="flex flex-wrap justify-center mt-3">
-        {data.length === 0 ? (
-          <p className="text-white">Loading...</p>
-        ) : (
-          data.map((item, index) => (
-            <div
-              key={item._id}
-              className="md:w-1/5 rounded-xl w-[75%] m-3.5 bg-white drop-shadow-2xl"
-            >
-              <div>
+        <h1 className="text-3xl text-white text-center mb-8">{category.name}</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          {filteredAndSortedData.length === 0 ? (
+            <div className="col-span-full text-center">
+              <p className="font-bold text-lg text-white">
+                לא נמצאו מוצרים התואמים את החיפוש
+              </p>
+            </div>
+          ) : (
+            filteredAndSortedData.map((item, index) => (
+              <div
+                key={item._id}
+                className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300"
+              >
                 <img
                   src={item.image}
                   alt={item.name}
-                  className="rounded-t-xl"
+                  className="w-full h-48 object-cover"
                 />
-                <div className="p-3 text-center">
-                  <h2>
-                    <b>{item.name}</b>
+                <div className="p-4">
+                  <h2 className="text-xl font-bold text-center mb-2">
+                    {item.name}
                   </h2>
-                  <h2>{item.price} ש"ח לק"ג</h2>
+                  <p className="text-center">{item.price} ש"ח לק"ג</p>
+                  <div className="flex justify-center items-center space-x-2 mt-4">
+                    <button
+                      className="ml-1.5 px-4 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300"
+                      onClick={() => addToCart(item, index)}
+                    >
+                      הוסף לסל
+                    </button>
+                    <div className="flex items-center border rounded-lg">
+                      <button
+                        className="px-3 py-1 font-bold hover:bg-gray-200 rounded-l-lg"
+                        onClick={() => decrementCount(index)}
+                      >
+                        -
+                      </button>
+                      <span className="px-3 py-1">
+                        <strong>{counts[index]} יח'</strong>
+                      </span>
+                      <button
+                        className="px-3 py-1 font-bold hover:bg-gray-200 rounded-r-lg"
+                        onClick={() => incrementCount(index)}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="text-center p-1 mb-2 flex justify-center">
-                <button
-                  className="me-3 border border-black p-2 rounded-md bg-blue-500 hover:ring-2 ring-black text-white"
-                  onClick={() => addToCart(item, index)}
-                  aria-label={`Add ${item.name} to cart`}
-                >
-                  הוסף לסל
-                </button>
-                <div className="border rounded-lg">
-                  <button
-                    className="p-2.5 border font-bold hover-bg-black hover-text-white rounded-r-lg"
-                    onClick={() => incrementCount(index)}
-                    aria-label={`Increase quantity of ${item.name}`}
-                  >
-                    +
-                  </button>
-                  <span className="p-2">
-                    <strong>{counts[index]} יח'</strong>
-                  </span>
-                  <button
-                    className="p-2.5 border font-bold hover-bg-black hover-text-white rounded-l-lg"
-                    onClick={() => decrementCount(index)}
-                    aria-label={`Decrease quantity of ${item.name}`}
-                  >
-                    -
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </article>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 }

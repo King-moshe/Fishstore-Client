@@ -8,23 +8,34 @@ import {
   API_URL,
   apiDelete,
   apiGet,
+  apiPatch,
   apiPost,
+  apiPut,
 } from "../../../services/apiService";
 import { useForm } from "react-hook-form";
 
 Modal.setAppElement("#root");
 
 // CategoryModal component
-const CategoryModal = ({ isOpen, onClose, onSubmit }) => {
+const CategoryModal = ({ isOpen, onClose, onSubmit, editData }) => {
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm();
 
+  useEffect(() => {
+    if (editData) {
+      setValue("name", editData.name);
+      setValue("cat_url", editData.cat_url);
+      setValue("image", editData.image);
+    }
+  }, [editData, setValue]);
+
   const onSubForm = (data) => {
-    onSubmit(data);
+    onSubmit(data, editData?._id);
     reset();
   };
 
@@ -32,13 +43,13 @@ const CategoryModal = ({ isOpen, onClose, onSubmit }) => {
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
-      contentLabel="Create Category Modal"
+      contentLabel="Category Modal"
       className="fixed inset-0 flex items-center justify-center mx-3"
       overlayClassName="fixed inset-0 bg-black bg-opacity-50"
     >
       <div className="bg-white rounded-lg max-w-md w-full p-6">
         <h2 className="text-2xl font-bold mb-4 text-center">
-          הוסף קטגוריה חדשה
+          {editData ? "ערוך קטגוריה" : "הוסף קטגוריה חדשה"}
         </h2>
         <form onSubmit={handleSubmit(onSubForm)} className="space-y-4">
           <div>
@@ -85,7 +96,7 @@ const CategoryModal = ({ isOpen, onClose, onSubmit }) => {
               type="submit"
               className="px-4 ml-2 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
             >
-              הוסף
+              {editData ? "עדכן" : "הוסף"}
             </button>
             <button
               type="button"
@@ -105,6 +116,7 @@ export default function CategoriesListAdmin() {
   const [data, setData] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editData, setEditData] = useState(null);
 
   useEffect(() => {
     doApi();
@@ -139,24 +151,42 @@ export default function CategoriesListAdmin() {
     }
   };
 
-  const doApiPostCategory = async (_bodyData) => {
+  const handleSubmit = async (_bodyData, _id = null) => {
     try {
-      const url = API_URL + "/categories";
-      const data = await apiPost(url, _bodyData);
-      if (data._id) {
+      let url = API_URL + "/categories";
+      let data;
+      
+      if (_id) {
+        // Edit existing category
+        url += "/" + _id;
+        data = await apiPatch(url, _bodyData);
+        toast.success("הקטגוריה עודכנה בהצלחה");
+      } else {
+        // Add new category
+        data = await apiPost(url, _bodyData);
         toast.success("קטגוריה חדשה נוספה");
+      }
+
+      if (data._id) {
         setIsModalOpen(false);
+        setEditData(null);
         doApi();
       }
     } catch (error) {
-      if (error.response.status === 404) {
+      if (error.response?.status === 404) {
         toast.error("המשאב או הבקשה לא נמצאו.");
-      } else if (error.response.data.message === "You have the same category") {
+      } else if (error.response?.data?.message === "You have the same category") {
         toast.error(error.response.data.message);
       } else {
         console.log(error);
+        toast.error("אירעה שגיאה. אנא נסה שוב.");
       }
     }
+  };
+
+  const openEditModal = (item) => {
+    setEditData(item);
+    setIsModalOpen(true);
   };
 
   const filteredData = data.filter((item) =>
@@ -177,7 +207,10 @@ export default function CategoriesListAdmin() {
           />
           <button
             className="ml-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300"
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              setEditData(null);
+              setIsModalOpen(true);
+            }}
           >
             צור קטגוריה
           </button>
@@ -211,7 +244,10 @@ export default function CategoriesListAdmin() {
                     >
                       <DeleteIcon />
                     </button>
-                    <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300">
+                    <button 
+                      onClick={() => openEditModal(item)}
+                      className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300"
+                    >
                       <EditIcon />
                     </button>
                   </div>
@@ -223,8 +259,12 @@ export default function CategoriesListAdmin() {
       </div>
       <CategoryModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={doApiPostCategory}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditData(null);
+        }}
+        onSubmit={handleSubmit}
+        editData={editData}
       />
     </div>
   );

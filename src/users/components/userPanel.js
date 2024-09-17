@@ -34,11 +34,6 @@ export default function UserPanel() {
           <MenuIcon fontSize="large" />
         </button>
         <LogoOfMarket />
-        {/* <img
-          src={logo}
-          alt="logo"
-          className="h-[inherit] hidden md:block w-1/6 pl-20"
-        /> */}
         <nav className="hidden md:block w-4/6 text-center h-full">
           <ul className="flex w-2/3 m-auto justify-between h-full items-center">
             <li
@@ -64,7 +59,7 @@ export default function UserPanel() {
                 to="/categories"
                 onClick={() => handleTabClick("categories")}
               >
-                דגים
+                מוצרים
               </Link>
             </li>{" "}
             |
@@ -156,7 +151,7 @@ export default function UserPanel() {
                 onClick={() => handleTabClick("categories")}
               >
                 {" "}
-                <PhishingIcon /> דגים{" "}
+                <PhishingIcon /> מוצרים{" "}
               </Link>
             </li>
             <li

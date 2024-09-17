@@ -16,6 +16,8 @@ import ProductsListAdmin from './admin/components/products/productsListAdmin';
 import OrdersListAdmin from './admin/components/orders/ordersListAdmin';
 import CategoriesList from './users/components/categoriesList';
 import Wines from './users/components/wines';
+import ProductsList from './users/components/productsList';
+import Faq from './users/components/faq';
 
 
 export default function AppRoutes() {
@@ -35,6 +37,8 @@ export default function AppRoutes() {
                     <Route path='/recipes' element={<Recipes />} />
                     <Route path='/wines' element={<Wines />} />
                     <Route path='/order' element={<UserOrder />} />
+                    <Route path='/products' element={<ProductsList />} />
+                    <Route path='/faq' element={<Faq />} />
 
 
                     <Route path='/login' element={<Login />} />

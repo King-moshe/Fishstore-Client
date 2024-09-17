@@ -1,38 +1,42 @@
-import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import { API_URL, apiGet } from "../../services/apiService";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useStateContext } from "../../context";
-import EastIcon from '@mui/icons-material/East';
+import EastIcon from "@mui/icons-material/East";
 
-export default function FreshFish() {
+export default function ProductsList() {
+  const [catListAr, setCatListAr] = useState([]);
   const [counts, setCounts] = useState([]);
-  const [data, setData] = useState([]);
+  const [products, setProducts] = useState([]);
   const { setCountCart } = useStateContext();
-  const location = useLocation();
-  const nav = useNavigate();
-  const category = location.state;
-  const [searchText, setSearchText] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
-    if (!category) {
-      nav("/categories");
-      return;
-    }
     doApi();
-  }, [category, nav]);
+    doApiGetCatList();
+  }, []);
 
   const doApi = async () => {
     const url = API_URL + "/products/list";
     try {
+      const products = await apiGet(url);
+      console.log(products);
+      setProducts(products);
+      setCounts(new Array(products.length).fill(1));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const doApiGetCatList = async () => {
+    const url = API_URL + "/categories/list";
+    try {
       const data = await apiGet(url);
       console.log(data);
-      const filteredData = data.filter(
-        (item) => item.cat_url === category.cat_url
-      );
-      setData(filteredData);
-      setCounts(new Array(filteredData.length).fill(1));
+      setCatListAr(data);
     } catch (error) {
       console.log(error);
     }
@@ -70,9 +74,12 @@ export default function FreshFish() {
     }
   }
 
-  const filteredAndSortedData = data
+  const filteredAndSortedData = products
     .filter((item) =>
       item.name.toLowerCase().includes(searchText.toLowerCase())
+    )
+    .filter((item) =>
+      selectedCategory ? item.cat_url === selectedCategory : true
     )
     .sort((a, b) =>
       sortOrder === "asc" ? a.price - b.price : b.price - a.price
@@ -92,6 +99,18 @@ export default function FreshFish() {
             />
             <select
               className="p-2 border border-gray-400 rounded-lg w-full md:w-auto"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              <option value="">כל הקטגוריות</option>
+              {catListAr.map((cat) => (
+                <option key={cat._id} value={cat.cat_url}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+            <select
+              className="p-2 border border-gray-400 rounded-lg w-full md:w-auto"
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
             >
@@ -103,7 +122,7 @@ export default function FreshFish() {
             <EastIcon />
           </Link>
         </div>
-        <h1 className="text-3xl text-white text-center mb-8">{category.name}</h1>
+        <h1 className="text-3xl text-white text-center mb-8">המוצרים שלנו</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {filteredAndSortedData.length === 0 ? (
             <div className="col-span-full text-center">
