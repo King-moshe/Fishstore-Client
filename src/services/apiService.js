@@ -1,6 +1,6 @@
 import axios from 'axios';
-export const API_URL = 'http://localhost:3002';
-// export const API_URL = 'https://fishstore-server.onrender.com';
+// export const API_URL = 'http://localhost:3002';
+export const API_URL = 'https://fishstore-server.onrender.com';
 export const KEY_TOKEN = 'fish_store';
 
 
