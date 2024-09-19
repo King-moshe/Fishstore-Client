@@ -1,7 +1,7 @@
 import React from "react";
 import "../design/home.css";
-import hpageImage from "../../pictures/salmonBG.jpg";
-import bgImage from "../../pictures/bgOfSalmon.jpg";
+import hpageImage from "../../pictures/salmonBG.png";
+import bgImage from "../../pictures/bgOfSalmon.png";
 import SetMealIcon from "@mui/icons-material/SetMeal";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import DeliveryDiningIcon from "@mui/icons-material/DeliveryDining";

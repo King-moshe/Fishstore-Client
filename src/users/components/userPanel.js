@@ -115,6 +115,7 @@ export default function UserPanel() {
               to="/login"
               onClick={() => handleTabClick("login")}
               className="p-3 rounded-xl absolute left-2 md:left-14 top-5"
+              aria-label="signup"
             >
               <PersonOutlineIcon fontSize="large" />
             </Link>
