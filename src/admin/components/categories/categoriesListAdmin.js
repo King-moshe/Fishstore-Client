@@ -10,7 +10,6 @@ import {
   apiGet,
   apiPatch,
   apiPost,
-  apiPut,
 } from "../../../services/apiService";
 import { useForm } from "react-hook-form";
 

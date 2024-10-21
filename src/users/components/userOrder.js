@@ -3,6 +3,7 @@ import { useStateContext } from "../../context";
 import SentimentSatisfiedAltIcon from "@mui/icons-material/SentimentSatisfiedAlt";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import ShoppingCartCheckoutIcon from "@mui/icons-material/ShoppingCartCheckout";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { Link } from "react-router-dom";
 
 export default function UserOrder() {
@@ -12,7 +13,8 @@ export default function UserOrder() {
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    setCartItems(storedCart);
+    const mergedCart = mergeCartItems(storedCart);
+    setCartItems(mergedCart);
   }, []);
 
   useEffect(() => {
@@ -23,6 +25,25 @@ export default function UserOrder() {
     setTotalAmount(calculatedTotal);
     setCountCart(cartItems.length);
   }, [cartItems]);
+
+  // פונקציה שמאחדת פריטים זהים בסל הקניות
+  const mergeCartItems = (cart) => {
+    const uniqueItems = [];
+
+    cart.forEach((item) => {
+      const existingItem = uniqueItems.find(
+        (i) => i.name === item.name && i.category === item.category
+      );
+
+      if (existingItem) {
+        existingItem.quantity += item.quantity;
+      } else {
+        uniqueItems.push({ ...item });
+      }
+    });
+
+    return uniqueItems;
+  };
 
   const removeItem = (index) => {
     const updatedCart = [...cartItems];
@@ -40,7 +61,8 @@ export default function UserOrder() {
   };
 
   const updateLocalStorage = (updatedCart) => {
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    const mergedCart = mergeCartItems(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(mergedCart));
   };
 
   return (
@@ -81,13 +103,13 @@ export default function UserOrder() {
                     />
                   </p>
                   <p className="md:w-1/4 w-1/2 pl-1">
-                    {item.price.toFixed(2)} ש"ח
+                    {(item.price * item.quantity).toFixed(2)} ש"ח
                   </p>
                   <button
                     className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300"
                     onClick={() => removeItem(index)}
                   >
-                    הסר מוצר
+                    <DeleteOutlineIcon />
                   </button>
                 </li>
               ))}
